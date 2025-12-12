@@ -1158,23 +1158,21 @@ def filter_data_by_qec(report_data):
                 filtered_history.append(entry)
                 continue
             
-            # Remove if entry_date >= QEC Month-Year
-            # Logic: If QEC is April 2025 (2025-04), exclude April 2025 and later
-            # entry_date is 1st of month. qec_date is 6th of April.
-            # If entry_date (2025-04-01) >= 2025-04-01 (start of QEC month) -> exclude?
-            # User: "filter out all repayment details after april 2025, including april 2025"
-            # So if Key is "04-25" -> Exclude.
-            # So if entry_date >= QEC Month Start -> Exclude.
+            # Remove if entry_date > QEC Month-Year (Actually, keep if <= QEC Month Start)
+            # User wants to include the QEC month data (e.g. March if QEC is in March)
             
             qec_month_start = datetime(qec_date.year, qec_date.month, 1)
             
-            if entry_date < qec_month_start:
+            # Use <= to include the QEC month itself
+            if entry_date <= qec_month_start:
                 filtered_history.append(entry)
                 
         acc['history48Months'] = filtered_history
         filtered_accounts.append(acc)
         
     filtered_data['accounts'] = filtered_accounts
+    # IMPORTANT: Update report_date to qec_date so that "last 3 months" checks use QEC date as anchor
+    filtered_data['report_date'] = qec_date_str_clean
     # Note: 'summary' dict is NOT updated, as discussed.
     
     return filtered_data
