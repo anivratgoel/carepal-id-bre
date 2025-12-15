@@ -1074,8 +1074,8 @@ def calculate_bre_score(report_data):
         final_status = "REJECT"
     else:
         final_score = round(weighted_score, 2)
-        # Check Threshold (65% of 5 = 3.25)
-        if final_score <= 3.25:
+        # Check Threshold (75% of 5 = 3.75)
+        if final_score < 3.75:
             final_status = "REJECT"
         else:
             final_status = "APPROVE"
@@ -1094,15 +1094,15 @@ def calculate_bre_score(report_data):
         
         if pct > 90:
             loan_amount = 300000
-        elif pct > 85:
+        elif pct > 87:
             loan_amount = 275000
-        elif pct > 80:
+        elif pct > 84:
             loan_amount = 225000
-        elif pct > 75:
+        elif pct > 81:
             loan_amount = 175000
-        elif pct > 70:
+        elif pct > 78:
             loan_amount = 125000
-        elif pct > 65:
+        elif pct > 75:
             loan_amount = 75000
         else:
             loan_amount = 0 # Should count as reject if <= 65 logic holds, but safe fallback
