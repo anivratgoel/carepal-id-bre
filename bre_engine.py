@@ -190,12 +190,12 @@ def check_bureau_score(score_value):
         score = int(score_value)
         
         # Check explicit ranges from top to bottom logic
-        if score > 800: return 5
-        elif 751 <= score <= 800: return 4
-        elif 726 <= score <= 750: return 3
-        elif 700 <= score <= 725: return 1
+        if score > 810: return 5
+        elif 776 <= score <= 810: return 4
+        elif 751 <= score <= 775: return 3
+        elif 720 <= score <= 750: return 1
         elif 0 <= score <= 300: return 2
-        elif score < 700: return 0 # Gaps like 301-699 fall here
+        elif score < 720: return 0 # Gaps like 301-699 fall here
         else: return 0
         
     except ValueError: return 0
@@ -230,7 +230,7 @@ def check_dpd_6m_all(data):
     # 30+ : 0; 01+ : 1; 0 : 4
     dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 6, 'LOANS', 'ALL')
     if dpd == 0: return 4
-    elif dpd < 30: return 1
+    # elif dpd < 30: return 1
     else: return 0
 
 def check_dpd_12m_active(data):
@@ -247,8 +247,9 @@ def check_dpd_12m_closed_all(data):
     # 60+ : 1; 30+ : 2; 01: 3; 0: 5
     dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'ALL', 'Closed')
     if dpd == 0: return 5
-    elif dpd < 30: return 3
-    elif dpd < 60: return 2
+    elif 0 < dpd <= 30: return 4
+    elif 30 < dpd <= 60: return 3
+    elif 60 < dpd <= 90: return 2
     else: return 1
 
 def check_dpd_36m_closed_all(data):
@@ -269,9 +270,9 @@ def check_overdue_active_loans(data):
     total = get_total_overdue(data['accounts'], 'LOANS', 'Active')
     val = total / 1000.0
     if val == 0: return 5
-    elif val <= 1: return 4
-    elif val <= 3: return 3
-    elif val <= 5: return 2
+    elif 0 < val <= 1: return 4
+    elif 1 < val <= 2: return 3
+    elif 2 < val <= 3: return 2
     else: return 1 # >5 is 1 (or 0?) Table has 5 cols: 5 4 3 2 1 0. Last col is 0.
     # Grid: - | 5 | 3-5 | 1-3 | Up to 1 | 0
     # Cols: 0(Left, >5) | 1(5?) | 2(3-5) | 3(1-3) | 4(upto1) | 5(0)
@@ -298,9 +299,9 @@ def check_overdue_active_cards(data):
     total = get_total_overdue(data['accounts'], 'CARDS', 'Active')
     val = total / 1000.0
     if val == 0: return 5
-    elif val <= 5: return 4
-    elif val <= 7.5: return 3
-    elif val <= 10: return 2
+    elif val <= 3: return 4
+    elif val <= 5: return 3
+    elif val <= 7.5: return 2
     else: return 1
 
 def check_overdue_closed_all(data):
@@ -309,9 +310,9 @@ def check_overdue_closed_all(data):
     total = get_total_overdue(data['accounts'], 'ALL', 'Closed')
     val = total / 1000.0
     if val == 0: return 5
-    elif val <= 10: return 4
-    elif val <= 20: return 3
-    elif val <= 25: return 2
+    elif val <= 7.5: return 4
+    elif val <= 10: return 3
+    elif val <= 15: return 2
     else: return 1
 
 # --- Derogatory & Enquiry Helpers ---
@@ -536,8 +537,8 @@ def check_derog_active_closed_36m(data):
     count = count_derogs_in_window(data['accounts'], parse_date(data['report_date']), 36, 'ALL', 'ALL')
     if count == 0: return 5
     elif count == 1: return 3
-    elif count == 2: return 1
-    else: return 0
+    elif count == 2: return 2
+    else: return 1
 
 def check_enquiry_1m(data):
     # Enquiry in last 1 month
@@ -717,7 +718,7 @@ def check_closed_loans_ratio(data):
     
     ratio = zero / total
     
-    if ratio > 0.6: return 5
+    if ratio > 0.5: return 5
     elif ratio > 0.4: return 4
     elif ratio > 0.25: return 3
     elif ratio > 0: return 2
@@ -778,7 +779,7 @@ def check_overdue_balance_ratio(data):
     elif ratio <= 0.1: return 4
     elif ratio <= 0.15: return 3
     elif ratio <= 0.20: return 2
-    elif ratio <= 0.30: return 1
+    elif ratio <= 0.25: return 1
     else: return 0
 
 def check_unsecured_clean_24m(data):
