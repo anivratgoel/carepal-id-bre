@@ -709,14 +709,14 @@ def check_closed_loans_ratio(data):
     s = data.get('summary', {})
     try:
         total = int(s.get('noOfAccounts', 0))
-        zero = int(s.get('noOfZeroBalanceAccounts', 0))
+        zero = int(s.get('noOfActiveAccounts', 0))
     except:
         total = 0
         zero = 0
         
     if total == 0: return 5 # No loans? Neutral/Good? Or Bad?
     
-    ratio = zero / total
+    ratio = (total - zero) / total
     
     if ratio > 0.5: return 5
     elif ratio > 0.4: return 4
@@ -1094,13 +1094,13 @@ def calculate_bre_score(report_data):
         
         if pct > 90:
             loan_amount = 300000
-        elif pct > 87:
+        elif pct > 86:
             loan_amount = 275000
-        elif pct > 84:
+        elif pct > 83:
             loan_amount = 225000
-        elif pct > 81:
+        elif pct > 80:
             loan_amount = 175000
-        elif pct > 78:
+        elif pct > 77:
             loan_amount = 125000
         elif pct > 75:
             loan_amount = 75000
