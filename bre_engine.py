@@ -9,13 +9,22 @@ from parse_reports import parse_report
 SECURED_TYPES = [
     'Housing Loan', 'Property Loan', 'Auto Loan', 'Gold Loan', 'Two Wheeler Loan', 
     'Tractor Loan', 'Construction Equipment Loan', 'Secured', 'Loan Against Shares',
-    'Home Loan', 'Commercial Vehicle Loan'
+    'Home Loan', 'Commercial Vehicle Loan', 'Detailing Loan', # Detailing was not in list but sticking to user list primarily
+    'Auto Loan (Personal)', 'Loan Against Property (LAP)', 'Loan Against Bank Deposits',
+    'Secured Credit Card', 'Overdraft', 'Cash Credit', 'Term Loan', 'Secured Loan',
+    'Leasing', 'GECL Secured', 'Used Car Loan', 'Microfinance - Housing Loan'
 ]
 
 UNSECURED_TYPES = [
     'Personal Loan', 'Credit Card', 'Consumer Loan', 'Business Loan', 
     'Education Loan', 'Overdraft', 'Kisan Credit Card', 'Unsecured',
-    'Professional Loan', 'Credit Card Loan'
+    'Professional Loan', 'Credit Card Loan', 'Consumer Durable Loan',
+    'Unsecured Loan', 'Business Loan - Unsecured', 'Business Loan - Priority Sector',
+    'Business Loan - Agriculture', 'Overdraft - Unsecured', 'Short Term Personal Loan',
+    'Loan to Professional', 'Kisan Credit Card (KCC)', 'Agricultural Loan',
+    'Mudra Loan', 'Microfinance Loan', 'Loan on Credit Card', 'Other',
+    'GECL Unsecured', 'Corporate Credit Card', 'Microfinance - Business Loan',
+    'Microfinance - Personal Loan'
 ]
 
 # --- Helper Functions ---
@@ -327,7 +336,9 @@ def is_derogatory(value):
     val = str(value).lower()
     bad_keywords = [
         "suit filed", "sma", "sub", "dbt", "lss", "wilful default", 
-        "settled", "written off", "wrt", "set", "wof"
+        "settled", "written off", "wrt", "set", "wof", 
+        "wo", "pws", "sf", "suit", "wilful", "rstd", "res", 
+        "aps", "apr", "apwo", "as", "pwoc", "woas"
     ]
     for kw in bad_keywords:
         if kw in val:
