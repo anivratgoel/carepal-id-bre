@@ -238,8 +238,8 @@ def check_dpd_12m_active(data):
     # 60+ : 1; 30+ : 2; 01: 3; 0: 5
     dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'LOANS', 'Active')
     if dpd == 0: return 5
-    elif dpd < 30: return 3
-    elif dpd < 60: return 2
+    elif dpd < 30: return 2
+    # elif dpd < 60: return 1
     else: return 1
 
 def check_dpd_12m_closed_all(data):
@@ -247,9 +247,9 @@ def check_dpd_12m_closed_all(data):
     # 60+ : 1; 30+ : 2; 01: 3; 0: 5
     dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'ALL', 'Closed')
     if dpd == 0: return 5
-    elif 0 < dpd <= 30: return 4
-    elif 30 < dpd <= 60: return 3
-    elif 60 < dpd <= 90: return 2
+    elif 0 < dpd <= 30: return 3
+    elif 30 < dpd <= 60: return 2
+    # elif 60 < dpd <= 90: return 2
     else: return 1
 
 def check_dpd_36m_closed_all(data):
@@ -327,7 +327,7 @@ def is_derogatory(value):
     val = str(value).lower()
     bad_keywords = [
         "suit filed", "sma", "sub", "dbt", "lss", "wilful default", 
-        "settled", "written off", "wrt", "set"
+        "settled", "written off", "wrt", "set", "wof"
     ]
     for kw in bad_keywords:
         if kw in val:
