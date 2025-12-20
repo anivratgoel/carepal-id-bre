@@ -242,29 +242,28 @@ def check_dpd_6m_all(data):
     # elif dpd < 30: return 1
     else: return 0
 
-def check_dpd_12m_active(data):
-    # DPD in Active loans in last 12 months
-    # 60+ : 1; 30+ : 2; 01: 3; 0: 5
-    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'LOANS', 'Active')
+def check_dpd_12m_loans_all(data):
+    # DPD in ALL loans (Active or Closed) in last 12 months
+    # 0: 5; <30 : 2; else 1
+    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'LOANS', 'ALL')
     if dpd == 0: return 5
     elif dpd < 30: return 2
-    # elif dpd < 60: return 1
     else: return 1
 
-def check_dpd_12m_closed_all(data):
-    # DPD in closed loans/cards in last 12 months (Include Cards)
-    # 60+ : 1; 30+ : 2; 01: 3; 0: 5
-    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'ALL', 'Closed')
+def check_dpd_12m_cards_all(data):
+    # DPD in ALL cards (Active or Closed) in last 12 months
+    # Scoring same as previous check_dpd_12m_closed_all
+    # 0: 5; 0-30: 3; 30-60: 2; else 1
+    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 12, 'CARDS', 'ALL')
     if dpd == 0: return 5
     elif 0 < dpd <= 30: return 3
     elif 30 < dpd <= 60: return 2
-    # elif 60 < dpd <= 90: return 2
     else: return 1
 
-def check_dpd_36m_closed_all(data):
-    # DPD in closed loans/cards in last 36 months
-    # 90+ : 1; 60+ : 2; 30+: 3; 01+: 4; 0: 5
-    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 36, 'ALL', 'Closed')
+def check_dpd_24m_closed_all(data):
+    # DPD in closed loans/cards in last 24 months
+    # Scoring same as previous check_dpd_36m_closed_all
+    dpd = get_max_dpd_in_window(data['accounts'], parse_date(data['report_date']), 24, 'ALL', 'Closed')
     if dpd == 0: return 5
     elif dpd < 30: return 4
     elif dpd < 60: return 3
@@ -539,7 +538,7 @@ def check_derog_active_closed_12m(data):
     # 0 -> 5, 1 -> 1, >1 -> 0
     count = count_derogs_in_window(data['accounts'], parse_date(data['report_date']), 12, 'ALL', 'ALL')
     if count == 0: return 5
-    elif count == 1: return 1
+    # elif count == 1: return 1
     else: return 0
 
 def check_derog_active_closed_36m(data):
@@ -880,22 +879,22 @@ BRE_CHECKS = [
         "extractor": lambda d: d
     },
     {
-        "name": "DPD 12m Active Loans",
-        "func": check_dpd_12m_active,
+        "name": "DPD 12m Loans All",
+        "func": check_dpd_12m_loans_all,
         "weight": 0.03,
         "critical": False,
         "extractor": lambda d: d
     },
     {
-        "name": "DPD 12m Closed Loans/Cards",
-        "func": check_dpd_12m_closed_all,
+        "name": "DPD 12m Cards All",
+        "func": check_dpd_12m_cards_all,
         "weight": 0.03,
         "critical": False,
         "extractor": lambda d: d
     },
     {
-        "name": "DPD 36m Closed Loans/Cards",
-        "func": check_dpd_36m_closed_all,
+        "name": "DPD 24m Closed All",
+        "func": check_dpd_24m_closed_all,
         "weight": 0.02,
         "critical": False,
         "extractor": lambda d: d
@@ -1085,14 +1084,16 @@ def calculate_bre_score(report_data):
         final_status = "REJECT"
     else:
         final_score = round(weighted_score, 2)
-        # Check Threshold (75% of 5 = 3.75)
-        if final_score < 3.75:
+        # Check Threshold (80% of 5 = 4)
+        if final_score < 4:
             final_status = "REJECT"
         else:
             final_status = "APPROVE"
             
     # Calculate Loan Amount if Approved
     loan_amount = 0
+    customer_category = "N/A" # Default
+    
     if final_status == "APPROVE" and final_score > 0:
         pct = (final_score / 5.0) * 100
         
@@ -1103,26 +1104,47 @@ def calculate_bre_score(report_data):
         # 81-85% -> 200,000 (>80 to <=85)
         # >85%   -> 300,000
         
-        if pct > 90:
-            loan_amount = 300000
+        if pct > 92:
+            loan_amount = 500000
+        elif pct > 90:
+            loan_amount = 425000
+        elif pct > 88:
+            loan_amount = 350000
         elif pct > 86:
-            loan_amount = 275000
-        elif pct > 83:
-            loan_amount = 225000
-        elif pct > 80:
-            loan_amount = 175000
-        elif pct > 77:
-            loan_amount = 125000
-        elif pct > 75:
-            loan_amount = 75000
+            loan_amount = 250000
+        elif pct > 84:
+            loan_amount = 200000
+        elif pct > 82:
+            loan_amount = 150000
+        elif pct >= 80:
+            loan_amount = 100000
         else:
             loan_amount = 0 # Should count as reject if <= 65 logic holds, but safe fallback
-    
+            
+        # Calculate Category based on pct
+        # >92%: CAT A: Low Risk
+        # 90.01-92%: CAT A: Low Risk
+        # 88.01-90%: CAT A: Low Risk
+        # 86.01-88%: CAT B: Moderate Risk
+        # 84.1-86%: CAT B: Moderate Risk
+        # 82.01-84%: CAT C: High Risk
+        # 80-82%: CAT C: High Risk
+        
+        if pct > 88:
+            customer_category = "CAT A: Low Risk"
+        elif pct > 84:
+            customer_category = "CAT B: Moderate Risk"
+        elif pct >= 80:
+            customer_category = "CAT C: High Risk"
+        else:
+            customer_category = "REJECT" # < 80
+
     return {
         "status": status,
         "final_score": final_score,
         "final_status": final_status,
         "loan_amount": loan_amount,
+        "customer_category": customer_category,
         "details": details
     }
 
@@ -1194,7 +1216,7 @@ def generate_csv_report(results, output_file='bureau_bre_results.csv'):
     headers = ['File Name', 'Applicant Name', 'QEC Date', 'Sanction Limit', 'Lender Status', 'Sanction Limit 2']
     check_names = [c['name'] for c in BRE_CHECKS]
     headers.extend(check_names)
-    headers.extend(['Status', 'Final Weighted Score', 'Final Decision', 'Sanctioned Amount'])
+    headers.extend(['Status', 'Final Weighted Score', 'Final Decision', 'Sanctioned Amount', 'Customer Category'])
     
     try:
         with open(output_file, 'w', newline='') as csvfile:
@@ -1222,6 +1244,7 @@ def generate_csv_report(results, output_file='bureau_bre_results.csv'):
                 row.append(result['final_score'])
                 row.append(result['final_status'])
                 row.append(f"{result['loan_amount']:,}") # Format with commas
+                row.append(result.get('customer_category', 'N/A'))
                 
                 writer.writerow(row)
         print(f"CSV generated: {output_file}")

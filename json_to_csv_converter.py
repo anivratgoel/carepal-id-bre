@@ -15,7 +15,7 @@ def convert_json_to_csv():
             return
 
         # key order
-        headers = ["file_name", "bre_status", "sanction_limit", "active_credit_card", "hard_reject", "rejection_reason"]
+        headers = ["file_name", "bre_status", "sanction_limit", "active_credit_card", "hard_reject", "rejection_reason", "customer_category"]
         
         with open(output_file, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=headers)
@@ -29,7 +29,8 @@ def convert_json_to_csv():
                     "sanction_limit": row.get("sanction_limit"),
                     "active_credit_card": row.get("active_credit_card"),
                     "hard_reject": row.get("hard_reject"),
-                    "rejection_reason": row.get("rejection_reason")
+                    "rejection_reason": row.get("rejection_reason"),
+                    "customer_category": row.get("customer_category")
                 })
                 
         print(f"Successfully converted {input_file} to {output_file}")

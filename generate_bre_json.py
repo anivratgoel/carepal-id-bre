@@ -87,7 +87,8 @@ def generate_json():
                     "sanction_limit": str(result['loan_amount']), 
                     "active_credit_card": has_active_cc,
                     "hard_reject": is_hard_reject,
-                    "rejection_reason": rejection_reason
+                    "rejection_reason": rejection_reason,
+                    "customer_category": result.get('customer_category', 'N/A')
                 })
          except Exception as e:
              print(f"Error processing {file_path}: {e}")
